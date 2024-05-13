@@ -90,13 +90,13 @@ public class PaymentServiceImpl implements PaymentService
 	@Override
 	public PaymentRequest process(PaymentRequest pr)
 	{
-//		pr.setResponse(PaymentResponse.builder()
-//				.amount(pr.getAmount())
-//				.currency(pr.getCurrency())
-//				.orderId(pr.getOrderId())
-//				.result(PaymentResult.ACCEPTED )
-//				.build()
-//		);
+		pr.setResponse(PaymentResponse.builder()
+				.amount(pr.getAmount())
+				.currency(pr.getCurrency())
+				.orderId(pr.getOrderId())
+				.result(PaymentResult.ACCEPTED )
+				.build()
+		);
 
 		return save(pr);
 	}

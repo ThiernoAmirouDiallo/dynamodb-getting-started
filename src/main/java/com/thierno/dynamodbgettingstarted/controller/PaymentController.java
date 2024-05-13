@@ -1,8 +1,6 @@
 package com.thierno.dynamodbgettingstarted.controller;
 
 import com.thierno.dynamodbgettingstarted.dto.PaymentRequest;
-import com.thierno.dynamodbgettingstarted.dto.PaymentResponse;
-import com.thierno.dynamodbgettingstarted.dto.PaymentResult;
 import com.thierno.dynamodbgettingstarted.service.PaymentService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
