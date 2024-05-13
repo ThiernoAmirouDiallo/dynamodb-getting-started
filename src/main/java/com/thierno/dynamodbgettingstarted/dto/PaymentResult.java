@@ -1,4 +1,4 @@
-package com.thierno.dynamodbgettingstarted.controller.dto;
+package com.thierno.dynamodbgettingstarted.dto;
 
 public enum PaymentResult
 {
