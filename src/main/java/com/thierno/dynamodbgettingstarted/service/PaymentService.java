@@ -11,7 +11,7 @@ public interface PaymentService
 	PaymentRequest getById(String id);
 	PaymentRequest getByOrderId(String orderId);
 	PaymentRequest update(PaymentRequest paymentRequest);
-	void delete(String id);
+	PaymentRequest delete(String id);
 	List<PaymentRequest> getAll();
 
 	PaymentRequest process(PaymentRequest pr);

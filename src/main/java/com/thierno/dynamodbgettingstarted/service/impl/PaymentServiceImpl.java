@@ -1,103 +1,112 @@
 package com.thierno.dynamodbgettingstarted.service.impl;
 
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.thierno.dynamodbgettingstarted.dto.PaymentRequest;
 import com.thierno.dynamodbgettingstarted.dto.PaymentResponse;
 import com.thierno.dynamodbgettingstarted.dto.PaymentResult;
 import com.thierno.dynamodbgettingstarted.service.PaymentService;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class PaymentServiceImpl implements PaymentService
 {
-	private final DynamoDBMapper dynamoDBMapper;
+	private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
 
-	public PaymentServiceImpl(DynamoDBMapper dynamoDBMapper)
+	public PaymentServiceImpl(DynamoDbEnhancedClient dynamoDbEnhancedClient)
 	{
-		this.dynamoDBMapper = dynamoDBMapper;
+		this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
 	}
 
 	@Override
 	public PaymentRequest save(PaymentRequest paymentRequest)
 	{
-		dynamoDBMapper.save(paymentRequest);
+		paymentRequest.setId(UUID.randomUUID().toString());
+		getMappedTable(PaymentRequest.class).putItem(paymentRequest);
 		return paymentRequest;
 	}
 
 	@Override
 	public PaymentRequest getById(String id)
 	{
-		return dynamoDBMapper.load(PaymentRequest.class, id);
+
+		/*QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(id)
+																 // .sortValue(accountId)
+																 .build());
+		return getMappedTable(PaymentRequest.class).query(q).items().stream().collect(Collectors.toList()).get(0);
+		*/
+
+		return getMappedTable(PaymentRequest.class).getItem(Key.builder().partitionValue(id).build());
 	}
 
 	@Override
 	public PaymentRequest getByOrderId(String orderId)
 	{
-		Map<String, AttributeValue> eav = new HashMap<>();
-		eav.put(":v_order_id", new AttributeValue().withS(orderId));
+		DynamoDbIndex<PaymentRequest> orderIdIndex = getMappedTable(PaymentRequest.class).index("orderId-index");
+		QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(orderId)
+																 // .sortValue(accountId)
+																 .build());
 
-		DynamoDBQueryExpression<PaymentRequest> queryExpression = new DynamoDBQueryExpression<PaymentRequest>()
-				.withIndexName("orderId-index")
-				.withKeyConditionExpression("orderId = :v_order_id")
-				.withConsistentRead(false) // todo: can this be true? use separate table where order id is the hash key or use transactions
-				.withExpressionAttributeValues(eav);
+		Iterator<Page<PaymentRequest>> result = orderIdIndex.query(q).iterator();
+		List<PaymentRequest> paymentRequests = new ArrayList<>();
+		while (result.hasNext())
+		{
+			Page<PaymentRequest> userPage = result.next();
+			paymentRequests.addAll(userPage.items());
+		}
 
-		List<PaymentRequest> latestReplies = dynamoDBMapper.query(PaymentRequest.class, queryExpression);
-
-		if (latestReplies.size() > 1)
+		if (paymentRequests.size() > 1)
 		{
 			throw new RuntimeException("More than one payment request found for order id: " + orderId);
 		}
 
-		return latestReplies.size() == 0 ? null : dynamoDBMapper.load(PaymentRequest.class, latestReplies.get(0).getId());
+		return paymentRequests.size() == 0 ? null : getById(paymentRequests.get(0).getId());
 	}
 
 	@Override
 	public PaymentRequest update(PaymentRequest paymentRequest)
 	{
-		PaymentRequest pr = dynamoDBMapper.load(PaymentRequest.class, paymentRequest.getId());
+		PaymentRequest pr = getMappedTable(PaymentRequest.class).getItem(Key.builder().partitionValue(paymentRequest.getId()).build());
 
 		pr.setMethod(pr.getMethod() + "_updated");
-		dynamoDBMapper.save(pr);
+		getMappedTable(PaymentRequest.class).updateItem(b -> b.item(paymentRequest).ignoreNulls(true));
 
 		return pr;
 	}
 
 	@Override
-	public void delete(String id)
+	public PaymentRequest delete(String id)
 	{
-		PaymentRequest pr = dynamoDBMapper.load(PaymentRequest.class, id);
-		if (pr != null)
-		{
-			dynamoDBMapper.delete(pr);
-		}
+		return getMappedTable(PaymentRequest.class).deleteItem(Key.builder().partitionValue(id).build());
 	}
 
 	@Override
 	public List<PaymentRequest> getAll()
 	{
-		DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-		return dynamoDBMapper.scan(PaymentRequest.class, scanExpression);
+		return getMappedTable(PaymentRequest.class).scan().items().stream().toList();
 	}
 
 	@Override
 	public PaymentRequest process(PaymentRequest pr)
 	{
-		pr.setResponse(PaymentResponse.builder()
-				.amount(pr.getAmount())
-				.currency(pr.getCurrency())
-				.orderId(pr.getOrderId())
-				.result(PaymentResult.ACCEPTED )
-				.build()
-		);
+		pr.setResponse(PaymentResponse.builder().amount(pr.getAmount()).currency(pr.getCurrency()).orderId(pr.getOrderId()).result(PaymentResult.ACCEPTED)
+							   .build());
 
 		return save(pr);
+	}
+
+	private <T> DynamoDbTable<T> getMappedTable(Class<T> type)
+	{
+		return dynamoDbEnhancedClient.table(type.getSimpleName(), TableSchema.fromBean(type));
 	}
 }
