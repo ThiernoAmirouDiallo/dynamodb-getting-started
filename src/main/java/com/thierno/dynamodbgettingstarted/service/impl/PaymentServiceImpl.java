@@ -46,7 +46,7 @@ public class PaymentServiceImpl implements PaymentService
 		DynamoDBQueryExpression<PaymentRequest> queryExpression = new DynamoDBQueryExpression<PaymentRequest>()
 				.withIndexName("orderId-index")
 				.withKeyConditionExpression("orderId = :v_order_id")
-				.withConsistentRead(false)
+				.withConsistentRead(false) // todo: can this be true?
 				.withExpressionAttributeValues(eav);
 
 		List<PaymentRequest> latestReplies = dynamoDBMapper.query(PaymentRequest.class, queryExpression);
