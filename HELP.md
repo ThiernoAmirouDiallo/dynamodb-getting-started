@@ -18,6 +18,7 @@ The following was discovered as part of building this project:
 * https://lafox.net/5/spring-boot-dynamodb-via-aws-sdk-v2.html
 * https://serhatcan.medium.com/how-to-migrate-from-dynamodb-java-sdk-v1-to-v2-2e3660729e05
 * [Transactions](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-use-multiop-trans.html)
+* [Simulating Amazon DynamoDB unique constraints using transactions](https://aws.amazon.com/blogs/database/simulating-amazon-dynamodb-unique-constraints-using-transactions/)
 
 AWS Keys:
 
