@@ -12,8 +12,10 @@ The following was discovered as part of building this project:
 * https://dynobase.dev/code-examples/dynamodb-query-global-secondary-index-java-example/#:~:text=To%20query%20a%20global%20secondary,Name%2C%20and%20Key%20Condition%20Expression.
 * https://stackoverflow.com/questions/21596865/aws-error-code-validationexception-aws-error-message-consistent-reads-are-not
 * https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-use.html
+* https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-use-secindex.html
 * https://docs.awspring.io/spring-cloud-aws/docs/3.0.0/reference/html/index.html#spring-cloud-aws-dynamoDb
 * https://lafox.net/5/spring-boot-dynamodb-via-aws-sdk-v2.html
+* https://serhatcan.medium.com/how-to-migrate-from-dynamodb-java-sdk-v1-to-v2-2e3660729e05
 
 AWS Keys:
 
