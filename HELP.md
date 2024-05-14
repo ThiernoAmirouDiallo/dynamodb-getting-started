@@ -5,6 +5,7 @@ The following was discovered as part of building this project:
 
 # Getting Started
 ## Important DynamoDB links
+* [Videos](https://www.youtube.com/watch?v=2k2GINpO308&list=PL9nWRykSBSFi5QD8ssI0W5odL9S0309E2&index=1)
 * https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/dynamodb_table
 * https://github.com/matheshyogeswaran/CRUD-dynamoDB-SpringBoot/blob/main/src/main/java/com/crudDynamo/CrudDynamo/model/Product.java
 * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBMapper.QueryScanExample.html
@@ -16,6 +17,7 @@ The following was discovered as part of building this project:
 * https://docs.awspring.io/spring-cloud-aws/docs/3.0.0/reference/html/index.html#spring-cloud-aws-dynamoDb
 * https://lafox.net/5/spring-boot-dynamodb-via-aws-sdk-v2.html
 * https://serhatcan.medium.com/how-to-migrate-from-dynamodb-java-sdk-v1-to-v2-2e3660729e05
+* [Transactions](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-use-multiop-trans.html)
 
 AWS Keys:
 
