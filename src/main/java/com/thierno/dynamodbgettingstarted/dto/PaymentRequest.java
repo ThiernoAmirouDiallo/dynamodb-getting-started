@@ -4,6 +4,7 @@ import lombok.Data;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSecondaryPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbSortKey;
 
 @DynamoDbBean
 @Data
@@ -16,6 +17,12 @@ public class PaymentRequest
 	public String getId()
 	{
 		return id;
+	}
+
+	@DynamoDbSortKey
+	public String getCurrency()
+	{
+		return currency;
 	}
 
 	private String orderId;

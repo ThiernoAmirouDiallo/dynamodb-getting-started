@@ -4,6 +4,7 @@ import com.thierno.dynamodbgettingstarted.dto.PaymentRequest;
 import com.thierno.dynamodbgettingstarted.dto.PaymentResponse;
 import com.thierno.dynamodbgettingstarted.dto.PaymentResult;
 import com.thierno.dynamodbgettingstarted.service.PaymentService;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbIndex;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PaymentServiceImpl implements PaymentService
@@ -40,13 +42,14 @@ public class PaymentServiceImpl implements PaymentService
 	public PaymentRequest getById(String id)
 	{
 
-		/*QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(id)
+		QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(id)
 																 // .sortValue(accountId)
 																 .build());
 		return getMappedTable(PaymentRequest.class).query(q).items().stream().collect(Collectors.toList()).get(0);
-		*/
 
-		return getMappedTable(PaymentRequest.class).getItem(Key.builder().partitionValue(id).build());
+		//		return getMappedTable(PaymentRequest.class).getItem(Key.builder().partitionValue(id)
+		//																	.sortValue("CAD")
+		//																	.build());
 	}
 
 	@Override
@@ -55,6 +58,30 @@ public class PaymentServiceImpl implements PaymentService
 		DynamoDbIndex<PaymentRequest> orderIdIndex = getMappedTable(PaymentRequest.class).index("orderId-index");
 		QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(orderId)
 																 // .sortValue(accountId)
+																 .build());
+
+		Iterator<Page<PaymentRequest>> result = orderIdIndex.query(q).iterator();
+		List<PaymentRequest> paymentRequests = new ArrayList<>();
+		while (result.hasNext())
+		{
+			Page<PaymentRequest> userPage = result.next();
+			paymentRequests.addAll(userPage.items());
+		}
+
+		if (paymentRequests.size() > 1)
+		{
+			throw new RuntimeException("More than one payment request found for order id: " + orderId);
+		}
+
+		return paymentRequests.size() == 0 ? null : getById(paymentRequests.get(0).getId());
+	}
+
+	@Override
+	public PaymentRequest getByOrderId(String orderId, String currency)
+	{
+		DynamoDbIndex<PaymentRequest> orderIdIndex = getMappedTable(PaymentRequest.class).index("orderId-index");
+		QueryConditional q = QueryConditional.keyEqualTo(Key.builder().partitionValue(orderId)
+																 .sortValue(currency) // todo: is the optional
 																 .build());
 
 		Iterator<Page<PaymentRequest>> result = orderIdIndex.query(q).iterator();
@@ -108,5 +135,12 @@ public class PaymentServiceImpl implements PaymentService
 	private <T> DynamoDbTable<T> getMappedTable(Class<T> type)
 	{
 		return dynamoDbEnhancedClient.table(type.getSimpleName(), TableSchema.fromBean(type));
+	}
+
+	@PostConstruct
+	public void getMappedTable()
+	{
+//		Class<PaymentRequest> type = PaymentRequest.class;
+//		dynamoDbEnhancedClient.table(type.getSimpleName(), TableSchema.fromBean(type)).createTable();
 	}
 }

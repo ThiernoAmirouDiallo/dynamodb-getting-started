@@ -35,8 +35,8 @@ public class PaymentController
 	}
 
 	@GetMapping("/request")
-	public PaymentRequest postPaymentRequest(@RequestParam("orderId") String orderId)
+	public PaymentRequest postPaymentRequest(@RequestParam("orderId") String orderId, @RequestParam("currency") String currency)
 	{
-		return paymentService.getByOrderId(orderId);
+		return paymentService.getByOrderId(orderId, currency);
 	}
 }
